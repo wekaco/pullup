@@ -1,27 +1,35 @@
 (
   var samples = [
-    "PARIS.aif" 
+    "PARIS.aif",
+    "SC_190505_003417_amp.wav" 
   ];
 
   var main = { | server, project_name = "code/sc-pullup" |
+    var load_timeout = 9;
     var loaded = Set[];
+    
     var buffers = samples.collect({ | name |
       var path = (Platform.userHomeDir +/+ project_name +/+ "Samples/Imported/" +/+ name);
       Buffer.read(server, path, action: { |buffer| 
-        ("Loaded:" +name + "\n" + buffer).postln;
+        ("好" +name ).postln;
         loaded.add(buffer);
       });
     });
-    
-    fork {
+   
+    var f = fork {
       loop {
         if (loaded.size > 0) {
-          "pop".postln;
-          Synth.new("wdj", [ \bufnum, loaded.pop() ]);
+          var synth = Synth.new("wdj", [ \bufnum, loaded.pop() ]);
+          synth.postln;
+        } {
+          1.wait;
         };
-        1.wait;
       }
-    }
+    };
+
+    load_timeout.wait;
+    f.stop;
+    "done".postln;
   };
   
   s.waitForBoot({
