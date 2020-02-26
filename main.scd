@@ -4,19 +4,17 @@
     //"SC_190505_003417_amp.wav" 
   ];
 
-  var main = { | server, project_name = "code/sc-pullup" |
+  var main = { | server, sample_paths |
     var load_timeout = 9;
     var loaded = Set[];
     
-    var buffers = samples.collect({ | name |
+    var buffers = sample_paths.collect({ | relative_homedir_path |
       var path = (
         Platform.userHomeDir +/+
-        project_name +/+
-        "Samples/Imported/" +/+
-        name
+        relative_homedir_path
       );
       Buffer.read(server, path, action: { |buffer| 
-        ("好" +name ).postln;
+        ("好" + relative_homedir_path ).postln;
         loaded.add(buffer);
       });
     });
@@ -47,7 +45,7 @@
         loop = 0.0 |
 
       var trig = Impulse.kr(XLine.kr(0.1, 6, 30));
-      var rate = XLine.kr(1, 2, 6) * -1;
+      var rate = XLine.kr(1, 12, 30);
 
       var sound = PlayBuf.ar(
         numChannels: 2,
@@ -61,7 +59,10 @@
       Out.ar(out, sound);
     });
     wdj.add;
-    main.value(s);
+    main.value(s, [
+      //"path/relative/toHomeDir.wav"
+      "code/sc-pullup/Samples/Imported/krauss_maffei.wav"
+    ]);
   });
 )
 Server.default.stopRecording;
