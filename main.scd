@@ -25,7 +25,7 @@ var main = { | server, sample_paths |
 		}
 	};
 
-	server.record;
+	//server.record;
 	load_timeout.wait;
 	thread.stop;
 	"done".postln;
@@ -39,12 +39,19 @@ s.waitForBoot({
 		startPos = 234800,
 		loop = 0.0 |
 
-		var trig = Impulse.kr(XLine.kr(0.1, 6, 30));
-		var rate = XLine.kr(1, 12, 30);
+		var mouse= LFNoise0.kr(4).range(0.1,10);
+		var sound, rate;
+		/*		var trig = Impulse.kr(XLine.kr(0.1, 6, 30));
+		var rate = XLine.kr(1, 12, 30);*/
 		//var rate = LFNoise2.kr(800).range(0.1,10);
 
+		var trig = Impulse.ar(mouse);
+		rate= EnvGen.ar(Env.new([0, 1, 0.9, 0], [0.1, 0.5, 1],[-5, 0, -5]),Impulse.ar(mouse),timescale:1/mouse)*LFNoise2.kr(10).range(-1,0);
+		startPos=LFNoise0.kr(1).range(1,1000000);
 
-		var sound = PlayBuf.ar(
+		//rate= EnvGen.ar(Env.new([0, 1, 0.9, 0], [0.1, 0.5, 1],[-5, 0, -5]),Impulse.ar(mouse),timescale:1/mouse)*LFNoise2.kr(LFNoise2.kr(1).range(1,10)).range(-1,0);
+
+		sound = PlayBuf.ar(
 			numChannels: 2,
 			bufnum: bufnum,
 			rate: BufRateScale.kr(bufnum) * rate,
