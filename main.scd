@@ -14,10 +14,17 @@ var main = { | server, sample_paths |
 		});
 	});
 
-	var thread = fork {
+        var bus = Bus.control(server, 1);
+        var thread;
+        
+        bus.set(1);
+	thread = fork {
 		loop {
 			if (loaded.size > 0) {
-				var synth = Synth.new("wdj", [ \bufnum, loaded.pop() ]);
+				var synth = Synth.new("wdj", [
+                                  \bufnum, loaded.pop()
+                                ]);
+                                synth.map(\rate, bus.index);
 				synth.postln;
 			} {
 				1.wait;
@@ -25,6 +32,8 @@ var main = { | server, sample_paths |
 		}
 	};
 
+        // default addToHead, should work with groups for performance
+        Synth.new("gesture", [ \bus, bus.index ]);
 	//server.record;
 	load_timeout.wait;
 	thread.stop;
@@ -32,26 +41,19 @@ var main = { | server, sample_paths |
 };
 
 s.waitForBoot({
+        var gesture = SynthDef(\gesture, { | bus |
+            Out.kr(bus, XLine.kr(1, 12, 30));
+        });
 	var wdj = SynthDef(\wdj, { |
 		out = 0,
 		bufnum,
-		//rate = 1.0,
+		rate = 1,
 		startPos = 234800,
 		loop = 0.0 |
 
-		var mouse= LFNoise0.kr(4).range(0.1,10);
-		var sound, rate;
-		/*		var trig = Impulse.kr(XLine.kr(0.1, 6, 30));
-		var rate = XLine.kr(1, 12, 30);*/
-		//var rate = LFNoise2.kr(800).range(0.1,10);
+                var trig = 1;
 
-		var trig = Impulse.ar(mouse);
-		rate= EnvGen.ar(Env.new([0, 1, 0.9, 0], [0.1, 0.5, 1],[-5, 0, -5]),Impulse.ar(mouse),timescale:1/mouse)*LFNoise2.kr(10).range(-1,0);
-		startPos=LFNoise0.kr(1).range(1,1000000);
-
-		//rate= EnvGen.ar(Env.new([0, 1, 0.9, 0], [0.1, 0.5, 1],[-5, 0, -5]),Impulse.ar(mouse),timescale:1/mouse)*LFNoise2.kr(LFNoise2.kr(1).range(1,10)).range(-1,0);
-
-		sound = PlayBuf.ar(
+		var sound = PlayBuf.ar(
 			numChannels: 2,
 			bufnum: bufnum,
 			rate: BufRateScale.kr(bufnum) * rate,
@@ -59,14 +61,17 @@ s.waitForBoot({
 			startPos: startPos,
 			loop: loop
 		);
+                rate.scope;
 		startPos.postln;
 		Out.ar(out, sound);
 	});
+        gesture.add;
 	wdj.add;
 	main.value(s, [
 		//"path/relative/toHomeDir.wav"
-		"/Users/sofokliskoutsourelis/Desktop/PALLADOS guns_out_2d_2b_amp.aiff"
+		"/Users/dmtrs/Desktop/STORMZYx DJLAG.wav"
 	]);
 });
 )
+
 Server.default.stopRecording;
